@@ -44,8 +44,9 @@ namespace QSharpExercises.Lab1 {
     /// This should show you how to use single-qubit gates to put qubits into
     /// uniform quantum superpositions.
     operation Exercise2 (targetA : Qubit, targetB : Qubit) : Unit {
-        // TODO
-        fail "Not implemented.";
+        H(targetA);
+        X(targetB);
+        H(targetB);
     }
 
 
@@ -72,8 +73,13 @@ namespace QSharpExercises.Lab1 {
         // a double for floating-point arithmetic. Q# won't let you do arithmetic
         // between Doubles and Ints directly.
 
-        // TODO
-        fail "Not implemented.";
+        let length = Length(qubits);
+
+        // rotate each qubit around the Y axis by 15° (π/12 radians), multiplied by its index in the array.
+        for i in 0 .. length - 1 {
+            let angle = PI()*IntAsDouble(i)/IntAsDouble(12);
+            Ry(angle, qubits[i]);
+        }
     }
 
 
@@ -102,7 +108,16 @@ namespace QSharpExercises.Lab1 {
         // and update each of its values with the apply-and-replace operator, or
         // append each Int to the array as you go. Use whichever method you prefer.
 
-        // TODO
-        fail "Not implemented.";
+        let length = Length(qubits);
+
+        mutable measurements = new Int[length];
+        for i in 0 .. length - 1 {
+            let measurement = M(qubits[i]);
+            let measurementAsInt = (measurement == Zero ? 0 | 1);
+            set measurements w/= i <- measurementAsInt;
+        }
+
+        return measurements;
+
     }
 }
