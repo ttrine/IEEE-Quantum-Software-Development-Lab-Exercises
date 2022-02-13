@@ -5,6 +5,7 @@ namespace QSharpExercises.Lab2 {
 
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Intrinsic;
+    open Microsoft.Quantum.Convert;
 
 
     /// # Summary
@@ -31,10 +32,7 @@ namespace QSharpExercises.Lab2 {
     /// This will show you how to apply quantum gates that take more than one
     /// qubit.
     operation Exercise1 (qubitA : Qubit, qubitB : Qubit) : Unit {
-        // Hint: you can do this with a single statement, using one gate.
-
-        // TODO
-        fail "Not implemented.";
+        SWAP(qubitA, qubitB);
     }
 
 
@@ -71,8 +69,11 @@ namespace QSharpExercises.Lab2 {
     /// # Remarks
     /// This will test your combined knowledge of arrays and multi-qubit gates.
     operation Exercise2 (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        let length = Length(register);
+        let half = length / 2;
+        for i in 0 .. half - 1{
+            SWAP(register[i], register[length - i - 1]);
+        }
     }
 
 
@@ -103,12 +104,22 @@ namespace QSharpExercises.Lab2 {
     /// superposition notation corresponds to the effects that quantum gates
     /// have on qubits.
     operation Exercise3 (registers : Qubit[][]) : Unit {
-        // Hint: you can start by putting all four registers into the state
-        // 1/√2(|00> + |11>), then build the final state for each register 
-        // from there.
+        // Prepare 4 classical input states |00>, |10>, |01>, |11>
+        X(registers[1][0]);
 
-        // TODO
-        fail "Not implemented.";
+        X(registers[2][1]);
+
+        X(registers[3][0]);
+        X(registers[3][1]);
+
+        // Then entangle each register with an H and a CNOT
+        for i in 0 .. Length(registers)-1{
+            // Hadamard on 0
+            H(registers[i][0]);
+
+            // CNOT on 1 with 0 as control
+            CNOT(registers[i][0], registers[i][1]);
+        }
     }
 
 
@@ -134,8 +145,12 @@ namespace QSharpExercises.Lab2 {
     /// qubits in a register by making you apply your knowledge to a register
     /// with more than two qubits.
     operation Exercise4 (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // Hadamard on 0
+        H(register[0]);
+        for i in 1 .. Length(register)-1{
+            // CNOT on i with 0 as control
+            CNOT(register[0], register[i]);
+        }
     }
 
 
@@ -153,7 +168,13 @@ namespace QSharpExercises.Lab2 {
     /// ## register
     /// The qubit register. It is in the state |00000>.
     operation Exercise5 (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        X(register[1]);
+        X(register[3]);
+
+        H(register[2]);
+
+        Z(register[2]);
+
+        CNOT(register[2], register[3]);
     }
 }
