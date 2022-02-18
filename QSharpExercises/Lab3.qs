@@ -28,8 +28,9 @@ namespace QSharpExercises.Lab3 {
     /// superpositions, where a register is in a combination of all possible
     /// states, and each state has an equal amplitude to the others.
     operation Exercise1 (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        for i in 0 .. Length(register)-1{
+            H(register[i]);
+        }
     }
 
 
@@ -61,8 +62,8 @@ namespace QSharpExercises.Lab3 {
         // in "QSharpReference.qs". It will show you the syntax for running a
         // gate in controlled mode with more than one control qubit.
 
-        // TODO
-        fail "Not implemented.";
+        Exercise1(register);
+        Controlled X(register, target);
     }
 
 
@@ -96,8 +97,19 @@ namespace QSharpExercises.Lab3 {
         // the qubits are in the |0> state, to the state |111> so the register
         // can be used as a set of control qubits.
 
-        // TODO
-        fail "Not implemented.";
+        // Uniformly superpose
+        Exercise1(register);
+
+        // Flip 0 and 1 into |1>
+        X(register[0]);
+        X(register[1]);
+
+        // Put target qubit into desired state
+        Controlled X(register, target);
+
+        // Flip 0 and 1 back to |0>
+        X(register[0]);
+        X(register[1]);
     }
 
 
@@ -127,8 +139,15 @@ namespace QSharpExercises.Lab3 {
         // the positive states are on one side together, and the negative
         // states are on the other side together.
 
-        // TODO
-        fail "Not implemented.";
+        // Uniformly superpose each register
+        Exercise1(registers[0]);
+        Exercise1(registers[1]);
+        Exercise1(registers[2]);
+
+        // Apply Z to the appropriate qubit in each register
+        Z(registers[0][2]);
+        Z(registers[1][1]);
+        Z(registers[2][0]);
     }
 
 
@@ -165,8 +184,23 @@ namespace QSharpExercises.Lab3 {
         // Once you've allocated and flipped the target qubit, your goal is to
         // use that information to flip the phase of the |110> state.
 
-        // TODO
-        fail "Not implemented.";
+        // Uniformly superpose
+        Exercise1(register);
+
+        // Convert |110> into |111>
+        X(register[2]);
+
+        // Allocate ancilla
+        use ancilla = Qubit();
+
+        // Phase kickback
+        Controlled Z(register, ancilla);
+
+        // Convert |111> back to |110>
+        X(register[2]);
+
+        // Reset ancilla
+        Reset(ancilla);
     }
 
 
