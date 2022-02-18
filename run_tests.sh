@@ -7,8 +7,7 @@ display_usage() {
     echo "To run a specific tests in a lab, give the test number as a second positional argument." 
     echo -e "Example: $0 1 3 \n"
 }
-echo $#
-echo $# -ge 2
+
 # Display usage if number of arguments is incorrect
 if [  $# -le 0 ] || [  $# -ge 3 ]
 then
