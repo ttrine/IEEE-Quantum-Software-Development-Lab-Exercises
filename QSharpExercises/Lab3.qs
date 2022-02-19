@@ -62,7 +62,10 @@ namespace QSharpExercises.Lab3 {
         // in "QSharpReference.qs". It will show you the syntax for running a
         // gate in controlled mode with more than one control qubit.
 
+        // Superpose into |+...+>
         Exercise1(register);
+
+        // Flip target qubit when all register qubits are 1
         Controlled X(register, target);
     }
 
@@ -97,17 +100,17 @@ namespace QSharpExercises.Lab3 {
         // the qubits are in the |0> state, to the state |111> so the register
         // can be used as a set of control qubits.
 
-        // Uniformly superpose
+        // Superpose into |+...+>
         Exercise1(register);
 
-        // Flip 0 and 1 into |1>
+        // Flip 0th and 1st register qubits into |1>
         X(register[0]);
         X(register[1]);
 
         // Put target qubit into desired state
         Controlled X(register, target);
 
-        // Flip 0 and 1 back to |0>
+        // Flip 0th and 1st back to |0>
         X(register[0]);
         X(register[1]);
     }
@@ -139,7 +142,7 @@ namespace QSharpExercises.Lab3 {
         // the positive states are on one side together, and the negative
         // states are on the other side together.
 
-        // Uniformly superpose each register
+        // Superpose each register into |+...+>
         Exercise1(registers[0]);
         Exercise1(registers[1]);
         Exercise1(registers[2]);
@@ -184,14 +187,15 @@ namespace QSharpExercises.Lab3 {
         // Once you've allocated and flipped the target qubit, your goal is to
         // use that information to flip the phase of the |110> state.
 
-        // Uniformly superpose
+        // Superpose into |+...+>
         Exercise1(register);
 
         // Convert |110> into |111>
         X(register[2]);
 
-        // Allocate ancilla
+        // Allocate and flip ancilla
         use ancilla = Qubit();
+        X(ancilla);
 
         // Phase kickback
         Controlled Z(register, ancilla);
@@ -228,8 +232,8 @@ namespace QSharpExercises.Lab3 {
         // in square brackets: 
         //      let newArray = [someQubit];
 
-        // TODO
-        fail "Not implemented.";
+        H(register[0]);
+        Controlled H([register[0]], register[1]);
     }
 
 
@@ -256,8 +260,34 @@ namespace QSharpExercises.Lab3 {
         // Note: It is possible (but challenging) to prepare this state
         // without using an ancilla qubit.
 
-        // TODO
-        fail "Not implemented.";
+        // Superpose into 1/√2 (|000> + |100>)
+        H(register[0]);
+
+        // Superpose further into 1/√2 * |000> + 1/2 (|100> + |110>)
+        Controlled H([register[0]], register[1]);
+
+        // Controlled flip on 3rd qubit to get 1/√2 * |000> + 1/2 (|100> + |111>)
+        Controlled X(register[0 .. 1], register[2]);
+
+        // ** Finally, negate phase of |100> **
+
+        // Rotate |100> to |111>
+        X(register[1]);
+        X(register[2]);
+
+        // Allocate and flip ancilla
+        use ancilla = Qubit();
+        X(ancilla);
+
+        // Phase kickback
+        Controlled Z(register, ancilla);
+
+        // Rotate |111> back to |100> to get desired state 1/√2*|000> + 1/2(|111> - |100>)
+        X(register[2]);
+        X(register[1]);
+
+        // Reset ancilla
+        Reset(ancilla);
     }
 
 
