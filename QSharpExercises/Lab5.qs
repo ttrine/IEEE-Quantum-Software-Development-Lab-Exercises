@@ -3,8 +3,10 @@
 
 namespace QSharpExercises.Lab5 {
 
+    open Microsoft.Quantum.Arrays;
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Intrinsic;
+    open Microsoft.Quantum.Logical;
 
 
     /// # Summary
@@ -70,8 +72,9 @@ namespace QSharpExercises.Lab5 {
         // same effect as not flipping it at all. Phase-flipping it three
         // times will have the same effect as only flipping it once, etc.
 
-        // TODO
-        fail "Not implemented.";
+        for i in 0 .. Length(input) - 1 {
+                CZ(input[i], output);
+        }
     }
 
 
@@ -116,8 +119,9 @@ namespace QSharpExercises.Lab5 {
         // You'll have to find a way to check the parity of the two qubits
         // without measuring anything.
 
-        // TODO
-        fail "Not implemented.";
+        // Phase-flip output if indices have different parity
+        CZ(input[firstIndex], output);
+        CZ(input[secondIndex], output);
     }
 
 
@@ -160,7 +164,36 @@ namespace QSharpExercises.Lab5 {
         // Note: Remember to put the input and output in the correct states
         // before running the oracle!
 
-        // TODO
-        fail "Not implemented.";
+        // Allocate qubits
+        use (input, output) = (Qubit[inputLength], Qubit());
+
+        // Superpose register into |+...+>
+        for i in 0 .. inputLength-1{
+            H(input[i]);
+        }
+
+        // Put output into initial |1> state
+        X(output);
+
+        // Run oracle
+        oracle(input, output);
+
+        // Nother round of H
+        for i in 0 .. inputLength-1{
+            H(input[i]);
+        }
+
+        // Measure
+        mutable results = new Result[0];
+        for i in 0 .. inputLength-1{
+            set results += [M(input[i])];
+        }
+        
+        // Reset
+        ResetAll(input);
+        Reset(output);
+
+        // If all of the results are |0>, the function is constant, else it's balanced
+        return All(IsResultZero, results);
     }
 }
