@@ -6,6 +6,7 @@ namespace QSharpExercises.Lab3 {
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Intrinsic;
     open Microsoft.Quantum.Math;
+    open Microsoft.Quantum.Convert;
 
 
     /// # Summary
@@ -317,8 +318,15 @@ namespace QSharpExercises.Lab3 {
     /// ## register
     /// A two-qubit register in the |00> state.
     operation Challenge1 (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        
+        // Rotate qubit 0 to produce the state √(2/3)|00> + 1/√3|10>
+        let theta = 2. * ArcCos(Sqrt(2. / 3.));
+        Ry(theta, register[0]);
+
+        // H on qubit 1 if qubit 0 is |0>
+        X(register[0]);
+        Controlled H([register[0]], register[1]);
+        X(register[0]);
     }
 
 
@@ -335,8 +343,15 @@ namespace QSharpExercises.Lab3 {
     /// ## register
     /// A three-qubit register in the |000> state.
     operation Challenge2 (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // Prepare state 1/√3(|100> + |010> + |000>)
+        Challenge1(register);
+
+        // Turn |000> into |001>
+        X(register[0]);
+        X(register[1]);
+        Controlled X(register[0 .. 1], register[2]);
+        X(register[1]);
+        X(register[0]);
     }
 
 
@@ -379,8 +394,20 @@ namespace QSharpExercises.Lab3 {
     /// quantum computers do things faster than classical computers once we
     /// get to quantum algorithms, but this is a good first hint.
     operation Challenge3 (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // Step 1 superpose into |++0>
+        Exercise1(register[0 .. 1]);
+
+        // Step 2
+        Z(register[0]);
+
+        // Step 3
+        Controlled H([register[1]], register[2]);
+
+        // Step 4
+        SWAP(register[1], register[2]);
+
+        // Step 5
+        X(register[1]);
     }
 
 
@@ -407,8 +434,23 @@ namespace QSharpExercises.Lab3 {
     /// ## register
     /// A three-qubit register in the |000> state.
     operation Challenge4 (register : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // Superpose into |++0>
+        Exercise1(register[0 .. 1]);
+
+        // Step 2
+        Controlled H([register[1]], register[2]);
+
+        // Step 3
+        SWAP(register[1], register[2]);
+
+        // Step 4 Z on qubit 2 if qubit 0 is 0, qubit 1 is 1
+        X(register[0]);
+        Controlled Z(register[0 .. 1], register[2]);
+        X(register[0]);
+
+        // Step 5 Z on qubit 0 if qubit 1 is 0
+        X(register[1]);
+        CZ(register[1], register[0]);
+        X(register[1]);
     }
 }
-
