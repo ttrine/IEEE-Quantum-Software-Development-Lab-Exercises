@@ -27,8 +27,15 @@ namespace QSharpExercises.Lab4 {
     /// A qubit that is entangled with another qubit in the state
     /// 1/√2(|00> + |11>).
     operation Exercise1 (buffer : Bool[], pairA : Qubit) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // Apply Z if the first bit is 1
+        if buffer[0] {
+            Z(pairA);
+        }
+
+        // Apply X if the second bit is 1
+        if buffer[1] {
+            X(pairA);
+        }
     }
 
 
@@ -53,7 +60,16 @@ namespace QSharpExercises.Lab4 {
     /// A classical bit array containing the two bits that were encoded in the
     /// entangled pair. Use false for 0 and true for 1.
     operation Exercise2 (pairA : Qubit, pairB : Qubit) : Bool[] {
-        // TODO
-        fail "Not implemented.";
+        // CNOT on B with A as control
+        CNOT(pairA, pairB);
+        
+        // H on A
+        H(pairA);
+
+        // Measure
+        let m1 = (M(pairA) == Zero ? false | true);
+        let m2 = (M(pairB) == Zero ? false | true);
+
+        return [m1, m2];
     }
 }
