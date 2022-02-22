@@ -3,6 +3,7 @@
 
 namespace QSharpExercises.Lab6 {
 
+    open Microsoft.Quantum.Arrays;
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Convert;
     open Microsoft.Quantum.Intrinsic;
@@ -30,8 +31,12 @@ namespace QSharpExercises.Lab6 {
     /// classicalBits array.
     operation Exercise1 (classicalBits : Bool[], register : Qubit[]) : Unit
     is Adj {
-        // TODO
-        fail "Not implemented.";
+        // In-place bitwise XOR between register and classicalBits
+        for i in 0 .. Length(register) - 1 {
+            if classicalBits[i] {
+                X(register[i]);
+            }
+        }
     }
 
 
@@ -50,8 +55,10 @@ namespace QSharpExercises.Lab6 {
     /// The target qubit that you must phase-flip if the register is in the
     /// |0...0> state. The target qubit will be provided in the |1> state.
     operation Exercise2 (register : Qubit[], target : Qubit) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // Phase-flip target if register is |0...0>
+        ApplyToEach(X, register);
+        Controlled Z(register, target);
+        ApplyToEach(X, register);
     }
 
 
@@ -104,8 +111,26 @@ namespace QSharpExercises.Lab6 {
         // then run Exercise1 in Adjoint mode to put the register back into
         // its original state.
 
-        // TODO
-        fail "Not implemented.";
+        // Bitwise XOR of originalMessage and candidateEncryptionKey
+        Exercise1(originalMessage, candidateEncryptionKey);
+
+        // Phase-flip target if register state equals encrypted message
+        BitwiseXOnaWbCtrl(encryptedMessage, candidateEncryptionKey);
+
+        Controlled Z(candidateEncryptionKey, target);
+
+        BitwiseXOnaWbCtrl(encryptedMessage, candidateEncryptionKey);
+
+        // Undo the XOR
+        Adjoint Exercise1(originalMessage, candidateEncryptionKey);
+    }
+
+    operation BitwiseXOnaWbCtrl (a : Bool[], b : Qubit[]) : Unit {
+        for i in 0 .. Length(a) - 1{
+            if not a[i] {
+                X(b[i]);
+            }
+        }
     }
 
 
@@ -134,8 +159,11 @@ namespace QSharpExercises.Lab6 {
         register : Qubit[],
         target : Qubit
     ) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // Run the oracle then the diffusion operator
+        oracle(register, target);
+        ApplyToEach(H, register);
+        Exercise2(register, target);
+        ApplyToEach(H, register);
     }
 
 
@@ -168,7 +196,26 @@ namespace QSharpExercises.Lab6 {
         // convenience.
         let iterations = Round(PowD(2.0, IntAsDouble(numberOfQubits) / 2.0));
 
-        // TODO
-        fail "Not implemented.";
+        // Allocate register and ancilla
+        use register = Qubit[numberOfQubits];
+        use ancilla = Qubit();
+
+        // Uniformly superpose
+        ApplyToEach(H, register);
+
+        // Grover iteration
+        for _ in 1 .. iterations{
+            Exercise4(oracle, register, ancilla);
+        }
+
+        // Measure out into classical register
+        let result = Mapped(ResultAsBool, MultiM(register));
+
+        // Reset qubits
+        ResetAll(register);
+        Reset(ancilla);
+
+        // Return classical register
+        return result;
     }
 }
