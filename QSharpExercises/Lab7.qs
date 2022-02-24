@@ -3,6 +3,7 @@
 
 namespace QSharpExercises.Lab7 {
     
+    open Microsoft.Quantum.Arrays;
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Convert;
     open Microsoft.Quantum.Intrinsic;
@@ -91,8 +92,22 @@ namespace QSharpExercises.Lab7 {
         op : ((Qubit[], Qubit[]) => Unit),
         input : Bool[]
     ) : Bool[] {
-        // TODO
-        fail "Not implemented.";
+        // Create register and put in same state as input
+        use inputQ = Qubit[Length(input)];
+        use outputQ = Qubit[Length(input)];
+        ApplyPauliFromBitString(PauliX, true, input, inputQ);
+
+        // Run operation with this input
+        op(inputQ, outputQ);
+        
+        // Measure output
+        let result = Mapped(ResultAsBool, MultiM(outputQ));
+
+        // Reset and return
+        ResetAll(inputQ);
+        ResetAll(outputQ);
+
+        return result;
     }
 
 
@@ -120,8 +135,27 @@ namespace QSharpExercises.Lab7 {
         op : ((Qubit[], Qubit[]) => Unit),
         inputSize : Int
     ) : Bool[] {
-        // TODO
-        fail "Not implemented.";
+        // Allocate registers
+        use input = Qubit[inputSize];
+        use output = Qubit[inputSize];
+
+        // Superpose input
+        ApplyToEach(H, input);
+
+        // Run the op
+        op(input, output);
+
+        // Another qubitwise H
+        ApplyToEach(H, input);
+
+        // Measure input
+        let result = Mapped(ResultAsBool, MultiM(input));
+        
+        // Reset and return
+        ResetAll(input);
+        ResetAll(output);
+
+        return result;
     }
 
 
@@ -158,8 +192,13 @@ namespace QSharpExercises.Lab7 {
     /// a three-qubit register, it would be |100>. If the unit tests provide
     /// that result, then you've implemented it properly.
     operation Challenge1 (input : Qubit[], output : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // Right-shift input by 1 bit
+
+        for inputIndex in 0 .. Length(input) - 2 {
+            // Copy input[i] to output[i+1]
+            let outputIndex = inputIndex + 1;
+            CNOT(input[inputIndex], output[outputIndex]);
+        }
     }
 
 
@@ -193,8 +232,42 @@ namespace QSharpExercises.Lab7 {
     /// Here's a hint: you can do it by only using the X gate, and controlled
     /// variants of the X gate (CNOT and CCNOT).
     operation Challenge2 (input : Qubit[], output : Qubit[]) : Unit {
-        // TODO
-        fail "Not implemented.";
+        // {100, 010} -> 000
+        // Do nothing
+
+        // 000 -> 101
+        ApplyToEach(X, input);
+        Controlled X(input, output[0]);
+        Controlled X(input, output[2]);
+        ApplyToEach(X, input);
+
+        // 110 -> 101
+        X(input[2]);
+        Controlled X(input, output[0]);
+        Controlled X(input, output[2]);
+        X(input[2]);
+
+        // 001 -> 010
+        X(input[0]);
+        X(input[1]);
+        Controlled X(input, output[1]);
+        X(input[0]);
+        X(input[1]);
+
+        // 111 -> 010
+        Controlled X(input, output[1]);
+
+        // 011 -> 110
+        X(input[0]);
+        Controlled X(input, output[0]);
+        Controlled X(input, output[1]);
+        X(input[0]);
+
+        // 101 -> 110
+        X(input[1]);
+        Controlled X(input, output[0]);
+        Controlled X(input, output[1]);
+        X(input[1]);        
     }
 
 }
