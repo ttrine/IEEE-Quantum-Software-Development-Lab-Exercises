@@ -4,6 +4,7 @@
 namespace QSharpExercises.Lab8 {
 
     open Microsoft.Quantum.Arithmetic;
+    open Microsoft.Quantum.Arrays;
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Convert;
     open Microsoft.Quantum.Intrinsic;
@@ -27,12 +28,22 @@ namespace QSharpExercises.Lab8 {
         // the first is your implementation of register reversal in Lab 2,
         // Exercise 2.
         // The second is the Microsoft.Quantum.Intrinsic.R1Frac() gate.
+        RecursivePart(register!);
 
-        // TODO
-        fail "Not implemented.";
+        // Reverse the register
+        SwapReverseRegister(register!);
     }
 
+    operation RecursivePart (register : Qubit[]) : Unit is Adj + Ctl {
+        H(register[0]);
+        if Length(register) > 1 {
+            for i in 1 .. Length(register) - 1{
+                Controlled R1Frac([register[i]], (2, 1+i, register[0]));
+            }
 
+            RecursivePart(Rest(register));
+        }
+    }
     /// # Summary
     /// In this exercise, you are given a quantum register in an unknown
     /// superposition. In this superposition, a single sine wave has been
@@ -61,8 +72,14 @@ namespace QSharpExercises.Lab8 {
         register : BigEndian,
         sampleRate : Double
     ) : Double {
-        // TODO
-        fail "Not implemented.";
-    }
+        Adjoint Exercise1(register);
+        mutable output = MeasureInteger(BigEndianAsLittleEndian(register));
 
+        let numSamps = 2^Length(register!);
+        if output > numSamps / 2 {
+            set output = numSamps - output;
+        }
+
+        return IntAsDouble(output) * (sampleRate / IntAsDouble(numSamps));
+    }
 }
