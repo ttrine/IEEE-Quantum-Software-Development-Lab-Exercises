@@ -43,8 +43,23 @@ namespace QSharpExercises.Lab9 {
         // Microsoft.Quantum.Arithmetic.MultiplyByModularInteger() function to
         // do an in-place quantum modular multiplication.
 
-        // TODO
-        fail "Not implemented.";
+        // Note to self: The tests assume output is in little endian, meaning the
+        // *most* significant bit has the *highest* index (so what we're used 
+        // to but not what previous labs assume), but input is in *big endian*.
+        let oLE = LittleEndian(output);
+
+        // Size of binary representation
+        let n = Length(input);
+
+        // Set output to (the bit expansion of) 1
+        X(output[Length(output)-1]);
+
+        // Binary substitution algorithm for modular multiplication:
+        // Modular multiplication of the output controlled on each successive input bit
+        for i in 0 .. n - 1 {
+            let ai = ExpModI(a, 2^(n-i-1), b);
+            Controlled MultiplyByModularInteger([input[i]], (ai, b, oLE));
+        }
     }
 
 
@@ -88,8 +103,28 @@ namespace QSharpExercises.Lab9 {
         // you do, run the test again. Also, look at the output of the test to
         // see what values you came up with versus what the system expects.
 
-        // TODO
-        fail "Not implemented.";
+        let n = Ceiling(Lg(IntAsDouble(numberToFactor + 1)));
+
+        // Allocate input and output registers
+        // TODO: Why does input need to be twice as big as output?
+        use (input, output) = (Qubit[2*n], Qubit[n]) {
+            // Uniformly superpose
+            ApplyToEach(H, input);
+            
+            // Modular exponentiation
+            Exercise1(guess, numberToFactor, input, output);
+
+            // Inverse QFT on input
+            let iBE = BigEndian(input);
+            Adjoint QFT(iBE);
+
+            // Measure, reset, return
+            let result = MeasureInteger(BigEndianAsLittleEndian(iBE));
+
+            ResetAll(output);
+
+            return (result, 2^(2*n));
+        }
     }
 
 
@@ -125,8 +160,64 @@ namespace QSharpExercises.Lab9 {
         denominator : Int,
         denominatorThreshold : Int
     ) : (Int, Int) {
-        // TODO
-        fail "Not implemented.";
+        // Initial conditions for numer and denom calculation
+        mutable nm2 = 0;
+        mutable dm2 = 1;
+
+        mutable nm1 = 1;
+        mutable dm1 = 0;
+
+        // Numerator and denominator of ith partial fraction expansion
+        mutable pi = numerator;
+        mutable qi = denominator;
+
+        // ith coeff. in continued fraction repr. of our rational
+        mutable ai = pi / qi;
+
+        // Remainder of above integer division
+        mutable ri = pi % qi;
+
+        // Numerator and denominator of ith convergent
+        mutable ni = 0;
+        mutable di = 1;
+
+        while ((di <= denominatorThreshold) and (ri != 0)) {
+            // If we're done, return current values
+            if ai * dm1 + dm2 > denominatorThreshold {
+                return (ni, di);
+            }
+
+            // Numer and denom are functions of ai and the previous two values
+            set ni = ai * nm1 + nm2;
+            set di = ai * dm1 + dm2;
+
+            // Numr and denom of partial frac exp
+            set pi = qi;
+            set qi = ri;
+
+            // Calculate next coefficient and remainder
+            set ai = pi / qi;
+            set ri = pi % qi;
+
+            // Replace previous values with current values
+            set nm2 = nm1;
+            set dm2 = dm1;
+
+            set nm1 = ni;
+            set dm1 = di;
+
+            // Check again if we're done
+            if ai * dm1 + dm2 > denominatorThreshold {
+                return (ni, di);
+            }
+
+            // If no remainder, return next and final numer, denom
+            if ri == 0 {
+                return (ai * nm1 + nm2, ai * dm1 + dm2);
+            }
+        }
+
+        return (ni, di);
     }
 
 
@@ -160,8 +251,22 @@ namespace QSharpExercises.Lab9 {
         // Microsoft.Quantum.Math.GreatestCommonDivisorI()
         // function to calculate the GCD of two numbers.
 
-        // TODO
-        fail "Not implemented.";
+        mutable d_old = 1;
+        mutable p = 0;
+        repeat {
+            // Run quantum part
+            let (a, b) = Exercise2(numberToFactor, guess);
+
+            // Run result through Exercise 3
+            let (_, d) = Exercise3(a, b, numberToFactor);
+
+            set p = (d_old * d) / GreatestCommonDivisorI(d_old, d);
+            set d_old = d;
+        }
+        // If we found the period, we're done
+        until guess ^ p % numberToFactor == 1;
+
+        return p;
     }
 
 
@@ -192,7 +297,16 @@ namespace QSharpExercises.Lab9 {
         numberToFactor : Int,
         guess : Int, period : Int
     ) : Int {
-        // TODO
-        fail "Not implemented.";
+        // Return -1 if period is odd
+        if period % 2 == 1 {
+            return -1;
+        }
+        let b = ExpModI(guess, period/2, numberToFactor);
+        // Return -2 if guess^(period/2) (mod numberToFactor) = -1
+        if (b + 1) % numberToFactor == 0 {
+            return -2;
+        }
+        // Otherwise return GCD(numberToFactor, b + 1)
+        return GreatestCommonDivisorI(numberToFactor, b + 1);
     }
 }
